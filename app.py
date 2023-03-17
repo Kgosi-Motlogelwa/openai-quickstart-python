@@ -10,26 +10,23 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 @app.route("/", methods=("GET", "POST"))
 def index():
     if request.method == "POST":
-        animal = request.form["animal"]
+        syllabus = request.form["syllabus"]
+        syllabusPoint = request.form["syllabusPoint"]
         response = openai.Completion.create(
             model="text-davinci-003",
-            prompt=generate_prompt(animal),
-            temperature=0.6,
+            prompt=generate_prompt(syllabus, syllabusPoint),
+            max_tokens=2048,
+            temperature=0.2,
         )
-        return redirect(url_for("index", result=response.choices[0].text))
+        print(response)
+        return response
+    return  'Get Request Not Possible'
 
-    result = request.args.get("result")
-    return render_template("index.html", result=result)
 
+def generate_prompt(syllabus, syllabusPoint):
+    return """Give me one or more example problems to help me learn:  
+        {syllabusPoint}I'm preparing for {syllabus} without the solution. 
+        The response shouldn't include, "I hope this helps! Let me know if you have any questions".
+        Write any equations in latex. Make solution as detailed as possible. OUTPUT ONLY a javascript object for example {question: 'Solve the equation $2x + 3 = 11$', solution: '$x = 4$'}
 
-def generate_prompt(animal):
-    return """Suggest three names for an animal that is a superhero.
-
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: {}
-Names:""".format(
-        animal.capitalize()
-    )
+        """
