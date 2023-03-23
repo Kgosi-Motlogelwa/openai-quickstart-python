@@ -56,13 +56,27 @@ def generate_prompt(syllabus, syllabusPoint):
         Write any equations in latex. Make solution as detailed as possible. 
         """
 
-@app.route("/test", methods=["POST"])
+@app.route("/lesson", methods=["POST"])
 @cross_origin()
 def post_example():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
-        json = request.json
-        print("json: ", json)
-        return json
+        data = json.loads(request.data)
+        print("data: ", data['syllabus'], data['syllabusPoint'])
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=generate_prompt_forLesson(data['syllabus'], data['syllabusPoint']),
+            max_tokens=2048,
+            temperature=0.2,
+        )
+        return response.choices[0].text
     else:
         return 'Content-Type not supported!'
+    
+    
+def generate_prompt_forLesson(syllabusLocal, syllabusPointLocal):
+    print(syllabusPointLocal)
+    return """Teach me:  
+        {syllabusPointLocal} in 10 minutes. I'm preparing for {syllabusLocal}.
+        Write any equations in latex. Make explanation as detailed as possible. 
+        """
